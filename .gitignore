@@ -1,0 +1,51 @@
+# Python virtual environment
+.venv/
+venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+
+# Raw datasets
+/data/raw/**
+!/data/raw/**/
+!/data/raw/**/.gitkeep
+
+# Processed datasets
+/data/processed/**
+!/data/processed/.gitkeep
+
+# Logs
+*.log
+logs/
+
+# Model files
+*.gguf
+*.safetensors
+*.pt
+*.pth
+
+# CFR source files
+/data/raw/cfr/*.xml
+
+# Generated regulatory indexes
+/data/processed/*.sqlite
+/data/processed/*.sqlite-*
+
+# ADK runtime state
+**/.adk/
+**/session.db
+
+# Generated evaluation results
+evaluations/results/
