@@ -49,3 +49,7 @@ logs/
 
 # Generated evaluation results
 evaluations/results/
+
+# Local backup files
+*.bak
+

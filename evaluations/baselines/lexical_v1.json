@@ -1,0 +1,74 @@
+{
+  "dataset": "5 preliminary, human-review-required queries",
+  "recall_at_3": 0.8,
+  "mrr_at_3": 0.6667,
+  "average_query_latency_ms": 11.37,
+  "all_evidence_verified": true,
+  "cases": [
+    {
+      "query": "pipelines requiring external corrosion protective coating",
+      "expected": [
+        "195.557"
+      ],
+      "retrieved": [
+        "195.559",
+        "195.561",
+        "195.557"
+      ],
+      "recall_at_3": 1.0,
+      "reciprocal_rank": 0.3333333333333333
+    },
+    {
+      "query": "permitted material for external corrosion coating",
+      "expected": [
+        "195.559"
+      ],
+      "retrieved": [
+        "195.559",
+        "195.561",
+        "195.557"
+      ],
+      "recall_at_3": 1.0,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "query": "records for corrosion control",
+      "expected": [
+        "195.589"
+      ],
+      "retrieved": [
+        "195.589",
+        "195.573",
+        "195.266"
+      ],
+      "recall_at_3": 1.0,
+      "reciprocal_rank": 1.0
+    },
+    {
+      "query": "general pipeline operation and maintenance requirements",
+      "expected": [
+        "195.401"
+      ],
+      "retrieved": [
+        "195.405",
+        "195.567",
+        "195.402"
+      ],
+      "recall_at_3": 0.0,
+      "reciprocal_rank": 0
+    },
+    {
+      "query": "which pipelines require cathodic protection",
+      "expected": [
+        "195.563"
+      ],
+      "retrieved": [
+        "195.563",
+        "195.571",
+        "195.565"
+      ],
+      "recall_at_3": 1.0,
+      "reciprocal_rank": 1.0
+    }
+  ]
+}
