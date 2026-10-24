@@ -119,8 +119,8 @@ class SemanticIndex:
 
 def lexical_sections(query, limit=10):
     # The tested FTS tool returns only up to 10 sections.
-    from tools.regulation_search import search_regulations
-    results = search_regulations(query, limit=min(limit, 10))
+    from tools.regulation_search import _search_regulations_lexical
+    results = _search_regulations_lexical(query, limit=limit)
     if results['status'] != 'success':
         raise RuntimeError(results.get('message', 'Lexical retrieval failed'))
     return [r['section_id'] for r in results['records']]
