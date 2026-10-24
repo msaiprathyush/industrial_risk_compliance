@@ -1,0 +1,32 @@
+{
+  "dataset_id": "pipelineiq-regulatory-v2",
+  "source_edition": "2025",
+  "label_status": "provisional_requires_human_review",
+  "guidance": "Review relevance using the local 2025 CFR text, not just section titles. Multi-section labels are allowed. Do not optimize retrieval on the same queries used for final evaluation.",
+  "cases": [
+    {"id":"C01","topic":"external_coating","query":"Which pipelines must have external corrosion protective coating?","expected":["195.557"],"split":"dev"},
+    {"id":"C02","topic":"external_coating","query":"What coating materials may be used for external corrosion protection?","expected":["195.559"],"split":"test"},
+    {"id":"C03","topic":"external_coating","query":"When is inspection of protective pipe coating required?","expected":["195.561"],"split":"test"},
+    {"id":"C04","topic":"cathodic_protection","query":"Which hazardous liquid pipelines need cathodic protection?","expected":["195.563"],"split":"dev"},
+    {"id":"C05","topic":"cathodic_protection","query":"What is required for cathodic protection of breakout tanks?","expected":["195.565"],"split":"test"},
+    {"id":"C06","topic":"cathodic_protection","query":"Requirements for installing and maintaining cathodic protection test leads","expected":["195.567"],"split":"test"},
+    {"id":"C07","topic":"cathodic_protection","query":"How is the adequacy of cathodic protection assessed?","expected":["195.571"],"split":"dev"},
+    {"id":"C08","topic":"cathodic_protection","query":"How often must external corrosion control systems be monitored?","expected":["195.573"],"split":"test"},
+    {"id":"C09","topic":"cathodic_protection","query":"What are the requirements for electrical isolation and safeguards?","expected":["195.575"],"split":"test"},
+    {"id":"C10","topic":"cathodic_protection","query":"How should interference currents be alleviated on a pipeline?","expected":["195.577"],"split":"test"},
+    {"id":"C11","topic":"corrosion","query":"How must operators mitigate internal corrosion?","expected":["195.579"],"split":"dev"},
+    {"id":"C12","topic":"corrosion","query":"What pipelines need atmospheric corrosion protection and what coating can be used?","expected":["195.581"],"split":"test"},
+    {"id":"C13","topic":"corrosion","query":"How do you monitor atmospheric corrosion controls?","expected":["195.583"],"split":"test"},
+    {"id":"C14","topic":"corrosion","query":"What should an operator do to correct corroded pipe?","expected":["195.585"],"split":"dev"},
+    {"id":"C15","topic":"corrosion","query":"Which methods determine the remaining strength of corroded pipe?","expected":["195.587"],"split":"test"},
+    {"id":"C16","topic":"corrosion","query":"Which standards govern direct assessment of corrosion?","expected":["195.588"],"split":"test"},
+    {"id":"C17","topic":"records","query":"What corrosion control records and information must operators maintain?","expected":["195.589"],"split":"dev"},
+    {"id":"C18","topic":"operations","query":"General requirements for operating and maintaining pipelines","expected":["195.401"],"split":"test"},
+    {"id":"C19","topic":"operations","query":"What must be included in a pipeline operations maintenance and emergency procedures manual?","expected":["195.402"],"split":"dev"},
+    {"id":"C20","topic":"operations","query":"How must pipeline operators handle emergency response training?","expected":["195.403"],"split":"test"},
+    {"id":"C21","topic":"operations","query":"What pipeline maps and operating records must be maintained?","expected":["195.404"],"split":"test"},
+    {"id":"C22","topic":"operations","query":"What restrictions apply to maximum pipeline operating pressure?","expected":["195.406"],"split":"test"},
+    {"id":"C23","topic":"cross_topic","query":"Protective coating requirements and inspection of the installed coating","expected":["195.557","195.561"],"split":"dev"},
+    {"id":"C24","topic":"cross_topic","query":"Pipeline general operating duties and written operation and maintenance procedures","expected":["195.401","195.402"],"split":"test"}
+  ]
+}
