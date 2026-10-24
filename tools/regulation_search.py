@@ -3,6 +3,8 @@ import hashlib
 import re
 import sqlite3
 from pathlib import Path
+import os
+from functools import lru_cache
 
 ROOT = Path(__file__).resolve().parents[1]
 DB_PATH = ROOT / 'data/processed/regulations_2025.sqlite'
@@ -45,7 +47,7 @@ def _best_passage(content: str, heading: str, tokens: list[str], max_chars: int 
     return content[best:best + max_chars]
 
 
-def search_regulations(query: str, limit: int = 3) -> dict:
+def _search_regulations_lexical(query: str, limit: int = 3) -> dict:
     """Search the 2025 edition of 49 CFR Part 195.
 
     Args:
@@ -135,3 +137,202 @@ def verify_regulation_evidence(record: dict, db_path: Path | None = None) -> boo
         and record['excerpt'] in content
         and record['content_sha256'] == hashlib.sha256(content.encode('utf-8')).hexdigest()
     )
+
+def lookup_regulation_section(section_id: str) -> dict:
+    """Retrieve an exact section from the indexed 2025 CFR Part 195.
+
+    Args:
+        section_id: Exact section identifier, e.g. '195.401'.
+
+    Returns:
+        Section metadata and verified source excerpt.
+    """
+    if not isinstance(section_id, str):
+        return {
+            "status": "error",
+            "message": "Section ID must be a string",
+        }
+
+    section_id = section_id.strip().lower()
+
+    if not re.fullmatch(r"195\.\d+[a-z]?", section_id):
+        return {
+            "status": "error",
+            "message": "Invalid Part 195 section ID",
+        }
+
+    if not DB_PATH.is_file():
+        return {
+            "status": "error",
+            "message": "Regulation index not found",
+        }
+
+    try:
+        with sqlite3.connect(DB_PATH) as db:
+            db.row_factory = sqlite3.Row
+
+            row = db.execute(
+                """
+                SELECT
+                    section_id,
+                    citation,
+                    heading,
+                    content,
+                    edition,
+                    as_of,
+                    source_url
+                FROM regulations
+                WHERE section_id = ?
+                """,
+                (section_id,),
+            ).fetchone()
+
+    except sqlite3.DatabaseError:
+        return {
+            "status": "error",
+            "message": "Regulation index query failed",
+        }
+
+    if row is None:
+        return {
+            "status": "error",
+            "message": "Section not found in indexed edition",
+        }
+
+    content = row["content"]
+
+    record = {
+        "section_id": row["section_id"],
+        "citation": row["citation"],
+        "heading": row["heading"],
+        "excerpt": content[:650],
+        "edition": row["edition"],
+        "as_of": row["as_of"],
+        "source_url": row["source_url"],
+        "content_sha256": hashlib.sha256(
+            content.encode("utf-8")
+        ).hexdigest(),
+    }
+
+    return {
+        "status": "success",
+        "record": record,
+    }
+
+@lru_cache(maxsize=1)
+def _semantic_index():
+    """Load the local semantic model and index once per process."""
+    from retrieval.hybrid import SemanticIndex
+    return SemanticIndex()
+
+
+def _search_regulations_semantic(query: str, limit: int) -> dict:
+    """Retrieve semantic candidates and resolve them to verified CFR text."""
+    from retrieval.hybrid import SemanticIndex
+
+    index = _semantic_index()
+    candidates = index.search(query, limit=limit)
+
+    records = []
+
+    with sqlite3.connect(DB_PATH) as con:
+        con.row_factory = sqlite3.Row
+
+        for candidate in candidates:
+            row = con.execute(
+                """
+                SELECT section_id, citation, heading, content,
+                       edition, as_of, source_url
+                FROM regulations
+                WHERE section_id = ?
+                """,
+                (candidate["section_id"],),
+            ).fetchone()
+
+            if row is None:
+                raise ValueError(
+                    f"Indexed section missing: {candidate['section_id']}"
+                )
+
+            # Semantic passages contain an added heading prefix.
+            prefix = f"{row['heading']}. "
+            passage = candidate["passage"]
+
+            if not passage.startswith(prefix):
+                raise ValueError("Unexpected semantic passage format")
+
+            excerpt = passage[len(prefix):]
+
+            # Ensure retrieved text really belongs to this section.
+            if excerpt not in row["content"]:
+                raise ValueError(
+                    f"Passage failed verification: {row['section_id']}"
+                )
+
+            content_hash = hashlib.sha256(
+                row["content"].encode("utf-8")
+            ).hexdigest()
+
+            record = {
+                "section_id": row["section_id"],
+                "citation": row["citation"],
+                "heading": row["heading"],
+                "excerpt": excerpt,
+                "edition": row["edition"],
+                "as_of": row["as_of"],
+                "source_url": row["source_url"],
+                "content_sha256": content_hash,
+            }
+
+            if not verify_regulation_evidence(record):
+                raise ValueError(
+                    f"Evidence verification failed: {row['section_id']}"
+                )
+
+            records.append(record)
+
+    return {
+        "status": "success",
+        "query": query,
+        "returned_count": len(records),
+        "retrieval_method": "semantic_minilm",
+        "records": records,
+    }
+
+
+def search_regulations(query: str, limit: int = 3) -> dict:
+    """Search 2025 CFR Part 195 using the configured retrieval mode.
+
+    Args:
+        query: Natural-language regulatory search question.
+        limit: Maximum number of sections to return, from 1 to 10.
+
+    Returns:
+        Grounded regulatory records with citations and provenance.
+    """
+    if not isinstance(query, str) or not query.strip():
+        return {"status": "error", "message": "Invalid query"}
+
+    if type(limit) is not int or not 1 <= limit <= 10:
+        return {"status": "error", "message": "Invalid result limit"}
+
+    mode = os.getenv(
+        "PIPELINEIQ_RETRIEVAL_MODE", "lexical"
+    ).strip().lower()
+
+    if mode == "lexical":
+        return _search_regulations_lexical(query, limit)
+
+    if mode == "semantic":
+        try:
+            return _search_regulations_semantic(query, limit)
+        except (FileNotFoundError, RuntimeError, ValueError) as exc:
+            return {
+                "status": "error",
+                "message": f"Semantic retrieval unavailable: {exc}",
+            }
+
+    return {
+        "status": "error",
+        "message": f"Unsupported retrieval mode: {mode}",
+    }
