@@ -66,6 +66,16 @@ root_agent = Agent(
     - Do not retrieve regulations for incident-only questions.
     - Keep final answers concise.
     - If a tool returns sufficient evidence, proceed to the answer.
+
+    Incident search rules:
+    - When the user specifies a reported incident cause,
+    use the cause parameter in search_incidents.
+    - For corrosion-related incident requests, use
+    cause="CORROSION FAILURE".
+    - Never retrieve an arbitrary recent sample and treat it
+    as an exhaustive cause-filtered result.
+    - Clearly distinguish reported causes from independently
+    established root causes.
     """,
 
     tools=[
